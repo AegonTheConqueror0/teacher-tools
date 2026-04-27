@@ -41,12 +41,12 @@ export const Toolbar = ({
   onToggleNotes
 }: ToolbarProps) => {
   return (
-    <div className="flex flex-row md:flex-col gap-2 sm:gap-4 z-50 w-full md:w-20 overflow-x-auto md:overflow-visible pb-2 md:pb-0">
+    <div className="flex flex-col gap-2 sm:gap-4 z-50 w-16 sm:w-20 max-h-[85vh] overflow-y-auto no-scrollbar py-4 px-2 bg-white/20 backdrop-blur-xl rounded-[40px] border-4 border-white shadow-2xl">
       {/* Main Tools */}
       <motion.div 
         initial={{ x: -100, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        className="flex flex-row md:flex-col gap-2 sm:gap-3"
+        className="flex flex-col gap-2 sm:gap-3"
       >
         <ToolButton 
           icon={<Layout size={24} />} 
@@ -98,15 +98,15 @@ export const Toolbar = ({
           shadowColor="#5448B7"
         />
         
-        <div className="flex flex-row md:flex-col gap-2 sm:gap-3 mt-0 md:mt-4">
+        <div className="flex flex-col gap-2 sm:gap-3 mt-4">
            {/* Colors */}
-          <div className="bg-white/90 backdrop-blur-md p-2 md:p-3 rounded-2xl md:rounded-3xl shadow-xl border-2 md:border-4 border-white flex flex-row md:flex-col items-center gap-2">
+          <div className="bg-white/90 backdrop-blur-md p-2 sm:p-3 rounded-2xl sm:rounded-3xl shadow-xl border-2 sm:border-4 border-white flex flex-col items-center gap-2">
             {COLORS.map(color => (
               <button
                 key={color}
                 onClick={() => onColorSelect(color)}
                 className={cn(
-                  "w-6 h-6 md:w-8 md:h-8 rounded-full transition-all hover:scale-110 active:scale-95 border-2",
+                  "w-6 h-6 sm:w-8 sm:h-8 rounded-full transition-all hover:scale-110 active:scale-95 border-2",
                   activeColor === color ? "border-black scale-125 shadow-lg" : "border-transparent"
                 )}
                 style={{ backgroundColor: color }}
@@ -122,19 +122,19 @@ export const Toolbar = ({
             colorClass="bg-white"
             shadowColor="#E0E0E0"
             textColor="text-red-500"
-            className="border-2 md:border-4 border-[#E0E0E0]"
+            className="border-2 sm:border-4 border-[#E0E0E0]"
           />
         </div>
       </motion.div>
 
-      <div className="flex-1" />
+      <div className="flex-1 min-h-[20px]" />
 
       {/* File & Notes Control */}
       <motion.div 
         initial={{ x: -100, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className="flex flex-row md:flex-col gap-2"
+        className="flex flex-col gap-2"
       >
         <ToolButton 
           icon={<StickyNote size={24} />} 

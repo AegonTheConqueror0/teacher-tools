@@ -31,7 +31,10 @@ export default function App() {
   const [scale, setScale] = useState<number>(1.25);
   const [activeTool, setActiveTool] = useState<Tool>('pointer');
   const [activeColor, setActiveColor] = useState<string>(COLORS[0]);
-  const [annotations, setAnnotations] = useState<AnnotationData>({});
+  const [annotations, setAnnotations] = useState<AnnotationData>(() => {
+    const saved = localStorage.getItem('teacher-annotations');
+    return saved ? JSON.parse(saved) : {};
+  });
   const [stars, setStars] = useState<number>(() => {
     const saved = localStorage.getItem('stars');
     return saved ? parseInt(saved) : 1250;
@@ -45,11 +48,30 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem('teacher-notes', notes);
-  }, [notes]);
+    if (currentStudent) {
+      setStudents(prev => prev.map(s => 
+        s.id === currentStudent.id ? { ...s, notes } : s
+      ));
+    }
+  }, [notes, currentStudent]);
+
+  useEffect(() => {
+    localStorage.setItem('teacher-annotations', JSON.stringify(annotations));
+    if (currentStudent) {
+      setStudents(prev => prev.map(s => 
+        s.id === currentStudent.id ? { ...s, annotations } : s
+      ));
+    }
+  }, [annotations, currentStudent]);
 
   useEffect(() => {
     localStorage.setItem('stars', stars.toString());
-  }, [stars]);
+    if (currentStudent) {
+      setStudents(prev => prev.map(s => 
+        s.id === currentStudent.id ? { ...s, stars } : s
+      ));
+    }
+  }, [stars, currentStudent]);
 
   useEffect(() => {
     localStorage.setItem('students', JSON.stringify(students));
@@ -75,19 +97,19 @@ export default function App() {
   const handleSelectStudent = (student: Student) => {
     setCurrentStudent(student);
     setStars(student.stars);
-    setNotes(''); // Could be student specific if we stored it
+    setNotes(student.notes || ''); 
     setView('classroom');
     setFile(null); // Reset file when entering new student classroom
-    setAnnotations({});
+    setAnnotations(student.annotations || {});
     setPageNumber(1);
     setIsWhiteboard(false);
   };
 
   const handleExitClassroom = () => {
-    // Save current stars to student record before leaving
+    // Save current session data to student record before leaving
     if (currentStudent) {
       setStudents(prev => prev.map(s => 
-        s.id === currentStudent.id ? { ...s, stars } : s
+        s.id === currentStudent.id ? { ...s, stars, notes, annotations } : s
       ));
     }
     setView('dashboard');
@@ -283,41 +305,45 @@ export default function App() {
               </div>
             </header>
 
-            <main className="flex-1 relative flex flex-col md:flex-row overflow-hidden p-3 sm:p-5 gap-3 sm:gap-5">
-              {/* Classroom content here */}
-        {/* Hidden File Input */}
-        <input 
-          type="file" 
-          ref={fileInputRef} 
-          onChange={onFileChange} 
-          accept=".pdf" 
-          className="hidden" 
-        />
+            <main className="flex-1 relative overflow-hidden p-3 sm:p-5">
+              {/* Teaching Toolbar - Floating on the left */}
+              <div className="fixed left-4 top-1/2 -translate-y-1/2 z-50 pointer-events-none h-auto max-h-[85vh] flex items-center">
+                <div className="pointer-events-auto">
+                  <Toolbar 
+                    activeTool={activeTool}
+                    onToolSelect={setActiveTool}
+                    activeColor={activeColor}
+                    onColorSelect={setActiveColor}
+                    onClear={handleClearPage}
+                    onFileClick={() => fileInputRef.current?.click()}
+                    fileName={file?.name || null}
+                    isWhiteboard={isWhiteboard}
+                    onToggleWhiteboard={() => {
+                      setIsWhiteboard(!isWhiteboard);
+                      if (!isWhiteboard) {
+                        setPageNumber(1);
+                      }
+                    }}
+                    onToggleNotes={() => setShowNotes(!showNotes)}
+                  />
+                </div>
+              </div>
 
-        {/* Teaching Toolbar */}
-        <Toolbar 
-          activeTool={activeTool}
-          onToolSelect={setActiveTool}
-          activeColor={activeColor}
-          onColorSelect={setActiveColor}
-          onClear={handleClearPage}
-          onFileClick={() => fileInputRef.current?.click()}
-          fileName={file?.name || null}
-          isWhiteboard={isWhiteboard}
-          onToggleWhiteboard={() => {
-            setIsWhiteboard(!isWhiteboard);
-            if (!isWhiteboard) {
-              setPageNumber(1);
-            }
-          }}
-          onToggleNotes={() => setShowNotes(!showNotes)}
-        />
+              <div className="h-full flex flex-col md:flex-row gap-3 sm:gap-5">
+                {/* Hidden File Input */}
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={onFileChange} 
+                  accept=".pdf" 
+                  className="hidden" 
+                />
 
-        {/* PDF Viewer Area */}
-        <div 
-          ref={viewerContainerRef}
-          className="flex-1 bg-[#E2E8F0] rounded-[32px] border-[10px] border-white shadow-[inset_0_2px_15px_rgba(0,0,0,0.1)] overflow-auto flex flex-col items-center py-8 relative"
-        >
+                {/* PDF Viewer Area - Add margin-left on desktop to clear floating toolbar */}
+                <div 
+                  ref={viewerContainerRef}
+                  className="flex-1 bg-[#E2E8F0] rounded-[32px] border-[10px] border-white shadow-[inset_0_2px_15px_rgba(0,0,0,0.1)] overflow-auto flex flex-col items-center py-8 relative sm:ml-24"
+                >
           <AnimatePresence mode="wait">
             {!file && !isWhiteboard ? (
               <motion.div 
@@ -518,8 +544,9 @@ export default function App() {
              </AnimatePresence>
           </motion.div>
         </aside>
+      </div>
 
-        {/* Teacher Notes Drawer */}
+      {/* Teacher Notes Drawer */}
         <AnimatePresence>
           {showNotes && (
             <motion.div 

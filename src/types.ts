@@ -12,6 +12,8 @@ export interface Student {
   schedule: string;
   level: string;
   stars: number;
+  notes?: string;
+  annotations?: AnnotationData;
 }
 
 export interface DrawingPath {
