@@ -101,7 +101,7 @@ export const Dashboard = ({ students, onSelectStudent, onAddStudent, onDeleteStu
                         e.stopPropagation();
                         handleOpenEdit(student);
                       }}
-                      className="p-2 text-gray-400 hover:text-indigo-500 transition-colors opacity-0 group-hover:opacity-100 bg-white shadow-sm rounded-full"
+                      className="p-2 text-gray-400 hover:text-indigo-500 transition-colors opacity-100 sm:opacity-0 group-hover:opacity-100 bg-gray-50 sm:bg-white shadow-sm rounded-full"
                     >
                       <Pencil size={14} />
                     </button>
@@ -112,7 +112,7 @@ export const Dashboard = ({ students, onSelectStudent, onAddStudent, onDeleteStu
                           onDeleteStudent(student.id);
                         }
                       }}
-                      className="p-2 text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 bg-white shadow-sm rounded-full"
+                      className="p-2 text-gray-400 hover:text-red-500 transition-colors opacity-100 sm:opacity-0 group-hover:opacity-100 bg-gray-50 sm:bg-white shadow-sm rounded-full"
                     >
                       <Trash2 size={14} />
                     </button>

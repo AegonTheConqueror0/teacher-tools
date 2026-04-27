@@ -155,12 +155,15 @@ export default function App() {
     setIsEditingPage(false);
   };
 
+  const [pdfPageSize, setPdfPageSize] = useState<{ width: number, height: number } | null>(null);
+
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const nextFile = e.target.files?.[0];
     if (nextFile) {
       setFile(nextFile);
       setPageNumber(1);
       setAnnotations({});
+      setPdfPageSize(null);
     }
   };
 
@@ -168,11 +171,31 @@ export default function App() {
     setNumPages(numPages);
   };
 
+  const onPageRenderSuccess = useCallback((page: any) => {
+    // page.getViewport provides exact dimensions at current scale
+    const viewport = page.getViewport({ scale });
+    setPdfPageSize({
+      width: viewport.width,
+      height: viewport.height
+    });
+  }, [scale]);
+
   const handleSavePath = useCallback((page: number, path: DrawingPath) => {
     setAnnotations(prev => ({
       ...prev,
       [page]: [...(prev[page] || []), path]
     }));
+  }, []);
+
+  const handleUpdatePath = useCallback((page: number, index: number, path: DrawingPath) => {
+    setAnnotations(prev => {
+      const pagePaths = [...(prev[page] || [])];
+      pagePaths[index] = path;
+      return {
+        ...prev,
+        [page]: pagePaths
+      };
+    });
   }, []);
 
   const handleClearPage = useCallback(() => {
@@ -342,6 +365,7 @@ export default function App() {
                   paths={annotations[pageNumber] || []}
                   color={activeColor}
                   onSavePath={handleSavePath}
+                  onUpdatePath={handleUpdatePath}
                   onClearPage={handleClearPage}
                 />
                 <div className="absolute top-4 right-4 text-gray-200 pointer-events-none select-none text-4xl font-black opacity-10">
@@ -360,25 +384,30 @@ export default function App() {
                   onLoadSuccess={onDocumentLoadSuccess}
                   loading={<div className="p-12 text-center font-black text-[#FF7D5E]">OPENING BOOK...</div>}
                 >
-                  <div className="relative">
+                  <div className="relative" style={pdfPageSize ? { width: pdfPageSize.width, height: pdfPageSize.height } : {}}>
                     <Page 
                       pageNumber={pageNumber} 
                       scale={scale} 
                       renderTextLayer={false}
                       renderAnnotationLayer={false}
+                      onRenderSuccess={onPageRenderSuccess}
+                      loading={<div className="bg-gray-100 animate-pulse" style={pdfPageSize ? { width: pdfPageSize.width, height: pdfPageSize.height } : { width: 400, height: 600 }} />}
                     />
                     {/* Annotation Layer should overlay exactly on the page */}
-                    {document.querySelector('.react-pdf__Page__canvas') && (
-                      <AnnotationLayer
-                        pageNumber={pageNumber}
-                        width={document.querySelector('.react-pdf__Page__canvas')!.clientWidth}
-                        height={document.querySelector('.react-pdf__Page__canvas')!.clientHeight}
-                        activeTool={activeTool}
-                        paths={annotations[pageNumber] || []}
-                        color={activeColor}
-                        onSavePath={handleSavePath}
-                        onClearPage={handleClearPage}
-                      />
+                    {pdfPageSize && (
+                      <div className="absolute inset-0 z-10">
+                        <AnnotationLayer
+                          pageNumber={pageNumber}
+                          width={pdfPageSize.width}
+                          height={pdfPageSize.height}
+                          activeTool={activeTool}
+                          paths={annotations[pageNumber] || []}
+                          color={activeColor}
+                          onSavePath={handleSavePath}
+                          onUpdatePath={handleUpdatePath}
+                          onClearPage={handleClearPage}
+                        />
+                      </div>
                     )}
                   </div>
                 </Document>

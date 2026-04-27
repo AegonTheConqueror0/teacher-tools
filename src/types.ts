@@ -20,6 +20,7 @@ export interface DrawingPath {
   width: number;
   tool: Tool;
   text?: string;
+  fontSize?: number;
 }
 
 export interface AnnotationData {
