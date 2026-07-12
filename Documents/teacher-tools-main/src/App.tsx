@@ -157,7 +157,7 @@ export default function App() {
   };
 
   const giveStar = () => {
-    setStars(prev => prev + 10);
+    setStars(prev => prev + 1);
     setShowStarAnim(true);
     playRewardSound();
     setTimeout(() => setShowStarAnim(false), 1500);
@@ -591,7 +591,7 @@ export default function App() {
             >
               <div className="sm:text-8xl text-6xl filter drop-shadow-2xl text-center">⭐</div>
               <div className="sm:text-2xl text-lg font-black text-[#6C5CE7] mt-4 bg-white px-6 py-2 rounded-full shadow-xl text-center whitespace-nowrap">
-                SUPER JOB! +10
+                GOOD JOB! +1
               </div>
             </motion.div>
           )}
